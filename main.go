@@ -10,6 +10,10 @@ import (
 	"os"
 )
 
+const (
+	target = "vmlinux"
+)
+
 func main() {
 	flag.Parse()
 
@@ -62,7 +66,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	vmlinux, err := os.Create("vmlinux")
+	_, err = os.Stat(target)
+	if err == nil {
+		fmt.Fprintf(os.Stderr, "%s is already exist\n", target)
+		os.Exit(1)
+	}
+
+	vmlinux, err := os.Create(target)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
