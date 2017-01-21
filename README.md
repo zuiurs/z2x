@@ -25,6 +25,6 @@ You can use `go get`.
 go get -u github.com/zuiurs/z2x
 ```
 
-## Licence 
+## License
 
 MIT
