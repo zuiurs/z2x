@@ -45,15 +45,15 @@ func main() {
 
 	data, err := ioutil.ReadAll(vmlinuz)
 	for i, v := range data {
+		if hdr == len(gzHdr) {
+			offset = i - len(gzHdr)
+			break
+		}
+
 		if v == gzHdr[hdr] {
 			hdr++
 		} else {
 			hdr = 0
-		}
-
-		if hdr == len(gzHdr) {
-			offset = i - len(gzHdr)
-			break
 		}
 	}
 
