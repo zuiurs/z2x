@@ -31,21 +31,29 @@ func main() {
 		}
 	}
 
-	gzMagic := []byte{0x1f, 0x8b, 0x08, 0x00}
+	// - vmlinuz structure - (later Linux 2.6.30)
+	// [<code for bootable>|<vmlinux compressed by gzip>]
+	//
+	// - gzip header -
+	// gzip magic code    : 0x1f 0x8b
+	// compression method : 0x08 (deflate)
+	// flags              : 0x00 (ASCII (maybe interpretted binary))
+	// (Reference - http://www.zlib.org/rfc-gzip.html#member-format)
+	gzHdr := []byte{0x1f, 0x8b, 0x08, 0x00}
 	hdr := 0
 	offset := -1
 
 	data, err := ioutil.ReadAll(vmlinuz)
 	for i, v := range data {
-		if hdr == len(gzMagic) {
-			offset = i - len(gzMagic)
-			break
-		}
-
-		if v == gzMagic[hdr] {
+		if v == gzHdr[hdr] {
 			hdr++
 		} else {
 			hdr = 0
+		}
+
+		if hdr == len(gzHdr) {
+			offset = i - len(gzHdr)
+			break
 		}
 	}
 
@@ -61,11 +69,12 @@ func main() {
 	}
 	defer vmlinux.Close()
 
+	// decompress
 	buf := bytes.NewBuffer(data[offset:])
-	r, err := gzip.NewReader(buf)
+	gzr, err := gzip.NewReader(buf)
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
 	}
-	io.Copy(vmlinux, r)
+	io.Copy(vmlinux, gzr)
 }
